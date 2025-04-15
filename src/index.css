@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  @apply z-10;
+}
+
+body {
+  @apply font-montserrat;
+}
+
+nav,
+footer {
+  @apply z-20;
+}
+
+.btn-primary-v,
+.bg-primary-v {
+  @apply bg-primary-black-vertical duration-300;
+}
+
+.btn-primary-h,
+.bg-primary-h {
+  @apply bg-primary-black-horizontal duration-300;
+}
+
+.text-accent-h,
+.btn-accent-h {
+  @apply bg-accent-horizontal duration-300;
+}
+
+.text-accent-v,
+.btn-accent-v {
+  @apply bg-accent-vertical duration-300;
+}
+
+.btn-accent-v:hover,
+.btn-accent-h:hover,
+.btn-primary-v:hover,
+.btn-primary-h:hover {
+  @apply brightness-110;
+}
+
+.btn-accent-v:focus,
+.btn-accent-h:focus,
+.btn-primary-v:focus,
+.btn-primary-h:focus {
+  @apply brightness-75;
+}
+
+.field {
+  @apply bg-secondary-black text-primary-gray rounded-lg py-sm px-md outline-none placeholder-primary-gray;
+}
+
+.btn {
+  @apply px-8 py-2 rounded-xl text-primary-white font-semibold;
+}
+
+p {
+  @apply leading-relaxed;
+}
+
+.swiper-button-prev,
+.swiper-button-next {
+  color: #cfc8b8 !important;
+  z-index: 20 !important;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  width: 40px !important;
+  height: 40px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+}
+.swiper-button-prev:hover,
+.swiper-button-next:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+.swiper-button-prev:after,
+.swiper-button-next:after {
+  font-size: 20px !important;
+}
+.swiper-pagination-bullet {
+  background: #cfc8b8 !important;
+  opacity: 0.4;
+}
+.swiper-pagination-bullet-active {
+  opacity: 1;
+  background: #cfc8b8 !important;
+}
+.swiper-pagination {
+  position: relative !important;
+  bottom: 10px !important;
+  padding-top: 20px !important;
+}
+
+@keyframes colorShift {
+  0% {
+    background-color: rgba(0, 196, 180, 0.3); /* bg-accent-v (teal) */
+  }
+  50% {
+    background-color: rgba(147, 51, 234, 0.3); /* purple */
+  }
+  100% {
+    background-color: rgba(249, 115, 22, 0.3); /* orange */
+  }
+}
+
+@keyframes blurShift {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  25% {
+    transform: scale(1.1) translate(20px, -20px);
+  }
+  50% {
+    transform: scale(1) translate(-20px, 20px);
+  }
+  75% {
+    transform: scale(1.1) translate(20px, 20px);
+  }
+  100% {
+    transform: scale(1) translate(0, 0);
+  }
+}
+.animate-blur-shift {
+  animation: blurShift 10s infinite ease-in-out;
+}
