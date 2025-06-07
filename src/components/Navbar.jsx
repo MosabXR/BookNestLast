@@ -4,10 +4,21 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import Logo from "/logo.svg";
 import ProfileImage from "/user_profile.png";
 
+import { useAuth } from "../context/AuthContext";
+
+import { getMyProfile } from "../services/userService";
+
+import { useQuery } from "@tanstack/react-query";
+
 export default function Navbar() {
+  const { data: profile } = useQuery({
+    queryKey: ["user"],
+    queryFn: getMyProfile,
+  });
+
+  const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(true); // Change to true for testing logged-in state
   const navigate = useNavigate();
 
   const toggleMenu = () => {
@@ -17,14 +28,6 @@ export default function Navbar() {
 
   const toggleProfile = () => {
     setIsProfileOpen(!isProfileOpen);
-  };
-
-  const handleSearchInput = (e) => {
-    const query = e.target.value;
-    if (query.length > 0) {
-      console.log("Search query:", query);
-      navigate("/search");
-    }
   };
 
   return (
@@ -93,7 +96,7 @@ export default function Navbar() {
               >
                 Categories
               </NavLink>
-              <NavLink
+              {/* <NavLink
                 to="/feed"
                 className={({ isActive }) =>
                   isActive
@@ -102,18 +105,31 @@ export default function Navbar() {
                 }
               >
                 Feed
+              </NavLink> */}
+              <NavLink
+                to="/search"
+                className={({ isActive }) =>
+                  isActive
+                    ? "text-accent-v bg-clip-text text-transparent font-semibold"
+                    : "hover:text-accent-v transition-colors"
+                }
+              >
+                Search
+              </NavLink>
+              <NavLink
+                to="/profile/me"
+                className={({ isActive }) =>
+                  isActive
+                    ? "text-accent-v bg-clip-text text-transparent font-semibold"
+                    : "hover:text-accent-v transition-colors"
+                }
+              >
+                Profile
               </NavLink>
             </div>
 
-            <input
-              type="text"
-              className="bg-secondary-black text-primary-gray rounded-2xl outline-none px-4 py-2 placeholder-primary-gray flex-grow max-w-xs"
-              placeholder="Search"
-              onChange={handleSearchInput}
-            />
-
             <div className="flex items-center gap-4">
-              {!loggedIn && (
+              {!user && (
                 <>
                   <Link
                     to="/login"
@@ -126,7 +142,7 @@ export default function Navbar() {
                   </Link>
                 </>
               )}
-              {loggedIn && (
+              {user && (
                 <div className="relative">
                   <button
                     onClick={toggleProfile}
@@ -134,33 +150,38 @@ export default function Navbar() {
                     aria-label="Profile menu"
                   >
                     <div className="profile-image w-10 h-10 bg-primary-gray rounded-xl overflow-hidden">
-                      <img
-                        src={ProfileImage}
-                        alt="Profile image"
-                        className="w-full h-full object-cover"
-                      />
+                      {profile?.profile_pic ? (
+                        <img
+                          src={profile?.profile_pic}
+                          alt="Profile image"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : null}
                     </div>
                   </button>
                   {isProfileOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-secondary-black rounded-lg shadow-lg py-2 z-50">
                       <Link
                         to="/notifications"
-                        className="block px-4 py-2 text-primary-white hover:text-accent-v transition-colors"
+                        className="block px-4 py-2 text-primary-white hover:text-accent-v transition-colors hover:bg-primary-black"
                         onClick={() => setIsProfileOpen(false)}
                       >
                         Notifications
                       </Link>
                       <Link
                         to="/settings"
-                        className="block px-4 py-2 text-primary-white hover:text-accent-v transition-colors"
+                        className="block px-4 py-2 text-primary-white hover:text-accent-v transition-colors hover:bg-primary-black"
                         onClick={() => setIsProfileOpen(false)}
                       >
                         Settings
                       </Link>
                       <Link
-                        to="/logout"
-                        className="block px-4 py-2 text-primary-white hover:text-accent-v transition-colors"
-                        onClick={() => setIsProfileOpen(false)}
+                        to="/"
+                        className="block px-4 py-2 text-primary-white hover:text-accent-v transition-colors hover:bg-primary-black"
+                        onClick={() => {
+                          setIsOpen(false);
+                          logout();
+                        }}
                       >
                         Logout
                       </Link>
@@ -201,7 +222,7 @@ export default function Navbar() {
             >
               Categories
             </NavLink>
-            <NavLink
+            {/* <NavLink
               to="/feed"
               className={({ isActive }) =>
                 isActive
@@ -211,11 +232,22 @@ export default function Navbar() {
               onClick={() => setIsOpen(false)}
             >
               Feed
+            </NavLink> */}
+            <NavLink
+              to="/search"
+              className={({ isActive }) =>
+                isActive
+                  ? "block py-2 text-accent-v bg-clip-text text-transparent font-semibold"
+                  : "block py-2 hover:text-accent-v transition-colors"
+              }
+              onClick={() => setIsOpen(false)}
+            >
+              Search
             </NavLink>
           </div>
 
           <div className="flex flex-col gap-4 mt-4">
-            {!loggedIn && (
+            {!user && (
               <>
                 <Link
                   to="/login"
@@ -233,7 +265,7 @@ export default function Navbar() {
                 </Link>
               </>
             )}
-            {loggedIn && (
+            {user && (
               <div className="flex flex-col gap-4">
                 <Link
                   to="/profile"
@@ -263,22 +295,17 @@ export default function Navbar() {
                   Settings
                 </Link>
                 <Link
-                  to="/logout"
+                  to="/"
                   className="block py-2 hover:text-accent-v transition-colors"
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => {
+                    setIsOpen(false);
+                    logout();
+                  }}
                 >
                   Logout
                 </Link>
               </div>
             )}
-          </div>
-          <div className="mt-4">
-            <input
-              type="text"
-              className="bg-secondary-black text-primary-gray rounded-xl outline-none px-4 py-2 placeholder-primary-gray w-full"
-              placeholder="Search"
-              onChange={handleSearchInput}
-            />
           </div>
         </div>
       </nav>

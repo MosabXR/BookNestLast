@@ -14,7 +14,6 @@ import Book from "./pages/Book";
 import Landing from "./pages/Landing";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
-
 function App() {
   return (
     <Router>
@@ -27,11 +26,11 @@ function App() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/search" element={<Search />} />
           <Route path="/author" element={<Author />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/me" element={<Profile />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/feed" element={<Feed />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/book" element={<Book />} />
+          <Route path="/book/:id" element={<Book />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="*" element={<NotFound />} />{" "}
           {/* Catch-all route for 404 */}

@@ -93,38 +93,25 @@ p {
 .swiper-pagination {
   position: relative !important;
   bottom: 10px !important;
-  padding-top: 20px !important;
+  padding-top: 36px !important;
 }
 
-@keyframes colorShift {
-  0% {
-    background-color: rgba(0, 196, 180, 0.3); /* bg-accent-v (teal) */
-  }
-  50% {
-    background-color: rgba(147, 51, 234, 0.3); /* purple */
-  }
-  100% {
-    background-color: rgba(249, 115, 22, 0.3); /* orange */
-  }
+.blob {
+  @apply w-[300px] h-[300px] bg-accent rounded-full blur-[250px] fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2;
 }
 
-@keyframes blurShift {
-  0% {
-    transform: scale(1) translate(0, 0);
-  }
-  25% {
-    transform: scale(1.1) translate(20px, -20px);
-  }
-  50% {
-    transform: scale(1) translate(-20px, 20px);
-  }
-  75% {
-    transform: scale(1.1) translate(20px, 20px);
-  }
-  100% {
-    transform: scale(1) translate(0, 0);
-  }
+.spinner {
+  width: 30px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(farthest-side, #cfc8b8 94%, #0000) top/8px 8px
+      no-repeat,
+    conic-gradient(#0000 30%, #cfc8b8);
+  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
+  animation: l13 1s infinite linear;
 }
-.animate-blur-shift {
-  animation: blurShift 10s infinite ease-in-out;
+@keyframes l13 {
+  100% {
+    transform: rotate(1turn);
+  }
 }

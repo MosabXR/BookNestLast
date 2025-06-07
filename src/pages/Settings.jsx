@@ -1,87 +1,160 @@
-import React, { useState } from "react";
-import ProfileImage from "/user_profile.png";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getMyProfile, updateUser } from "../services/userService";
 
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState("account"); // Default to Account Settings
-  const [firstName, setFirstName] = useState("Mosab");
-  const [lastName, setLastName] = useState("Elkalyouby");
-  const [bio, setBio] = useState(
-    "William Shakespeare (1564–1616) was an English playwright, poet, and actor..."
-  );
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const { data: user } = useQuery({
+    queryKey: ["user"],
+    queryFn: getMyProfile,
+  });
+
+  const [activeTab, setActiveTab] = useState("account");
+  const [username, setUsername] = useState("");
+  const [bio, setBio] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const navigate = useNavigate();
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  useEffect(() => {
+    if (user) {
+      setUsername(user.username || "");
+      setBio(user.bio || "");
+      user.created_at = new Date(user?.created_at).toDateString();
+    }
+  }, [user]);
+
+  const token = localStorage.getItem("token");
+
+  const updateMutation = useMutation({
+    mutationFn: (data) => updateUser(token, data),
+    onSuccess: () => {
+      alert("Profile updated successfully.");
+      queryClient.invalidateQueries(["user"]);
+    },
+    onError: (error) => {
+      console.error("Update failed:", error);
+      alert("Failed to update profile.");
+    },
+  });
+
+  const uploadPictureMutation = useMutation({
+    mutationFn: async (file) => {
+      const formData = new FormData();
+      formData.append("profile_pic", file);
+
+      const res = await fetch(
+        `http://localhost:8000/api/users/profile/upload_picture/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!res.ok) throw new Error("Upload failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      alert("Profile picture updated successfully.");
+      queryClient.invalidateQueries(["user"]);
+    },
+    onError: (err) => {
+      console.error(err);
+      alert("Failed to upload picture.");
+    },
+  });
 
   const handleUpdateInfo = (e) => {
     e.preventDefault();
-    console.log("Updated Info:", { firstName, lastName, bio });
-    // In a real app, send this to an API to update the user's profile
+    updateMutation.mutate({ username, bio });
   };
 
   const handleUpdatePassword = (e) => {
     e.preventDefault();
     if (newPassword === confirmPassword) {
       console.log("Password updated successfully:", newPassword);
-      // In a real app, send this to an API to update the password
       setNewPassword("");
       setConfirmPassword("");
-      setActiveTab("security"); // Return to security settings after update
+      setActiveTab("security");
     } else {
-      console.error("Passwords do not match");
+      alert("Passwords do not match");
     }
   };
 
   const handleLogout = () => {
-    console.log("User logged out");
-    // In a real app, clear auth tokens and redirect to login page
+    localStorage.removeItem("token");
     navigate("/login");
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      uploadPictureMutation.mutate(file);
+    }
+  };
+
   return (
-    <div className="container py-8 flex flex-col md:flex-row gap-8">
-      {/* Left Side: Profile Section */}
+    <div className="flex flex-col md:flex-row gap-md py-md">
+      {/* Profile Overview */}
       <div className="flex-1 flex flex-col gap-8">
         <div className="flex flex-col items-center md:flex-row gap-4 md:items-end">
-          <div className="w-64 md:w-64 aspect-square overflow-hidden rounded-lg bg-secondary-black">
-            <img
-              src={ProfileImage}
-              alt="Mosab Elkalyouby profile image"
-              className="w-full h-full object-cover"
-              loading="lazy"
-              decoding="async"
-            />
+          <div className="w-64 aspect-square overflow-hidden rounded-lg bg-secondary-black">
+            {user?.profile_pic ? (
+              <img
+                src={user?.profile_pic}
+                alt={`${user?.username}'s profile`}
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              <div className="flex items-center justify-center w-full h-full text-primary-white">
+                No Image
+              </div>
+            )}
           </div>
           <div className="flex flex-col gap-4">
             <h2 className="text-2xl font-semibold text-primary-white">
-              Mosab Elkalyouby
+              {user?.username}
             </h2>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="text-sm text-primary-gray"
+            />
             <button
               type="button"
-              className="btn btn-accent-v px-4 py-2 text-sm font-medium rounded-md text-primary-white hover:btn-accent-v/80 transition-colors"
+              className="btn btn-accent-v px-4 py-2 text-sm font-medium rounded-md text-primary-white hover:btn-accent-v/80"
               onClick={() => setActiveTab("profile")}
-              aria-label="Edit Mosab Elkalyouby's profile"
             >
               Edit Profile
             </button>
           </div>
         </div>
-        {/* Additional User Info */}
         <div className="flex flex-col gap-2">
           <p className="text-sm text-primary-gray">
-            <span className="text-primary-white">@MosabElkalyouby</span> •
-            Member since 13 April, 2025 • 1.2K followers
+            <span className="text-primary-white">@{user?.username}</span> •
+            Member since {user?.created_at}
           </p>
         </div>
         <h2 className="text-md sm:text-xl font-semibold text-primary-white">
           Bio
         </h2>
-        <p className="text-base leading-relaxed text-primary-white">{bio}</p>
+        <p className="text-base leading-relaxed text-primary-white">
+          {user?.bio}
+        </p>
       </div>
 
-      {/* Right Side: Settings Menu */}
+      {/* Settings Tabs */}
       <div className="w-full md:w-80 flex flex-col gap-6">
-        {/* Menu Tabs */}
         <div className="flex flex-col rounded-2xl bg-secondary-black shadow-md p-4 gap-2">
           <button
             onClick={() => setActiveTab("account")}
@@ -104,76 +177,30 @@ export default function Settings() {
             Profile Settings
           </button>
           <button
-            onClick={() => setActiveTab("security")}
-            className={`w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === "security"
-                ? "btn-accent-v text-primary-white"
-                : "text-primary-gray hover:btn-accent-v/20 hover:text-primary-white"
-            }`}
-          >
-            Security Settings
-          </button>
-          <button
             onClick={handleLogout}
-            className="w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-primary-gray hover:btn-accent-v/20 hover:text-primary-white transition-colors"
+            className="w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-primary-gray hover:btn-accent-v/20 hover:text-primary-white"
           >
             Logout
           </button>
         </div>
 
-        {/* Tab Content */}
         <div className="rounded-2xl bg-secondary-black shadow-md p-6">
-          {activeTab === "account" && (
-            <div className="flex flex-col gap-4">
-              <h3 className="text-lg font-semibold text-primary-white">
-                Account Settings
-              </h3>
-              <p className="text-sm text-primary-gray">
-                Username:{" "}
-                <span className="text-primary-white">@MosabElkalyouby</span>
-              </p>
-              <p className="text-sm text-primary-gray">
-                Member since:{" "}
-                <span className="text-primary-white">13 April, 2025</span>
-              </p>
-              <p className="text-sm text-primary-gray">
-                Followers: <span className="text-primary-white">1.2K</span>
-              </p>
-            </div>
-          )}
-
           {activeTab === "profile" && (
             <form onSubmit={handleUpdateInfo} className="flex flex-col gap-4">
               <h3 className="text-lg font-semibold text-primary-white">
                 Profile Settings
               </h3>
               <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="firstName"
-                  className="text-sm text-primary-gray"
-                >
-                  First Name
+                <label htmlFor="username" className="text-sm text-primary-gray">
+                  Username
                 </label>
                 <input
                   type="text"
-                  id="firstName"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-secondary-gray text-primary-white focus:outline-none focus:ring-2 focus:ring-accent-v"
-                  placeholder="First Name"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="lastName" className="text-sm text-primary-gray">
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-secondary-gray text-primary-white focus:outline-none focus:ring-2 focus:ring-accent-v"
-                  placeholder="Last Name"
+                  placeholder="Username"
                 />
               </div>
               <div className="flex flex-col gap-2">
@@ -191,77 +218,9 @@ export default function Settings() {
               </div>
               <button
                 type="submit"
-                className="btn btn-accent-v px-4 py-2 text-sm font-medium rounded-md text-primary-white hover:btn-accent-v/80 transition-colors"
+                className="btn btn-accent-v px-4 py-2 text-sm font-medium rounded-md text-primary-white hover:btn-accent-v/80"
               >
                 Update Info
-              </button>
-            </form>
-          )}
-
-          {activeTab === "security" && (
-            <div className="flex flex-col gap-4">
-              <h3 className="text-lg font-semibold text-primary-white">
-                Security Settings
-              </h3>
-              <Link to="/update-password">
-                <button className="w-full text-left px-4 py-2 rounded-lg btn-accent-v text-primary-white text-sm font-medium hover:btn-accent-v/80 transition-colors">
-                  Update Password
-                </button>
-              </Link>
-              <button
-                className="w-full text-left px-4 py-2 rounded-lg bg-secondary-gray text-primary-gray text-sm font-medium cursor-not-allowed"
-                disabled
-              >
-                Two-Factor Authentication
-              </button>
-            </div>
-          )}
-
-          {activeTab === "update-password" && (
-            <form
-              onSubmit={handleUpdatePassword}
-              className="flex flex-col gap-4"
-            >
-              <h3 className="text-lg font-semibold text-primary-white">
-                Update Password
-              </h3>
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="newPassword"
-                  className="text-sm text-primary-gray"
-                >
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  id="newPassword"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-secondary-gray text-primary-white focus:outline-none focus:ring-2 focus:ring-accent-v"
-                  placeholder="New Password"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="confirmPassword"
-                  className="text-sm text-primary-gray"
-                >
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-secondary-gray text-primary-white focus:outline-none focus:ring-2 focus:ring-accent-v"
-                  placeholder="Confirm Password"
-                />
-              </div>
-              <button
-                type="submit"
-                className="btn btn-accent-v px-4 py-2 text-sm font-medium rounded-md text-primary-white hover:btn-accent-v/80 transition-colors"
-              >
-                Update Password
               </button>
             </form>
           )}

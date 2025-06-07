@@ -4,11 +4,11 @@ import Footer from "../components/Footer";
 
 function Layout() {
   return (
-    <div className="flex flex-col min-h-screen bg-primary-black text-primary-white">
+    <div className="min-h-screen flex flex-col gap-md bg-primary-black text-primary-white">
       <Navbar />
-      <main className="flex-grow z-0">
-        <Outlet /> {/* Renders the current page */}
-      </main>
+      <div className="container flex-grow flex flex-col z-0">
+        <Outlet />
+      </div>
       <Footer />
     </div>
   );

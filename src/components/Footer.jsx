@@ -5,7 +5,7 @@ import Logo from "/logo.svg";
 export default function Footer() {
   return (
     <footer>
-      <div className="bg-secondary-black text-primary-white py-6 sm:py-8">
+      <div className="bg-secondary-black text-primary-white py-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center items-center gap-3 sm:gap-4">
           <Link
             to="/"

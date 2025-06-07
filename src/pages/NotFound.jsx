@@ -3,22 +3,8 @@ import { Link } from "react-router-dom";
 
 export default function NotFound() {
   return (
-    <div className="container px-4 sm:px-6 py-8 sm:py-12 flex flex-col items-center justify-center gap-6 sm:gap-8 min-h-screen bg-primary-black relative">
-      {/* Blurry Animated Background */}
-      <div
-        className="absolute inset-0 opacity-30 animate-blur-shift z-0"
-        style={{
-          background: `radial-gradient(circle, #CFC8B8 0%, transparent 70%)`,
-          filter: "blur(100px)",
-        }}
-        aria-hidden="true"
-      />
-      {/* Gradient Overlay */}
-      <div
-        className="absolute inset-0 bg-gradient-to-b from-primary-black/80 to-transparent z-0"
-        aria-hidden="true"
-      />
-
+    <div className="flex-grow flex flex-col items-center justify-center gap-md relative">
+      <div className="blob"></div>
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-6 sm:gap-8 text-center">
         {/* SVG Icon (Broken Book) */}

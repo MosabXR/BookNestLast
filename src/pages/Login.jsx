@@ -1,10 +1,27 @@
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Link } from "react-router-dom";
-import Logo from "/logo.svg"; // Adjust path as needed
+import { Link, useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import Logo from "/logo.svg";
+
+import { login } from "../services/authService";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
-  // Formik setup with validation schema
+  const { userLogin } = useAuth();
+  const navigate = useNavigate();
+  const mutation = useMutation({
+    mutationFn: login,
+    onSuccess: (data) => {
+      console.log(data);
+      userLogin(null, data.access);
+      navigate("/explore");
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
+
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -19,31 +36,18 @@ const Login = () => {
         .required("Password is required"),
     }),
     onSubmit: (values) => {
-      console.log("Form data:", values);
+      mutation.mutate(values);
     },
   });
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-sm space-y-6">
-        {/* Logo and Title */}
-        <div className="flex justify-center items-center gap-sm">
-          <img
-            className="w-[64px] h-[64px] sm:w-[80px] sm:h-[80px]"
-            src={Logo}
-            alt="BookNest Logo"
-          />
-          <h1 className="text-2xl text-accent-v bg-clip-text text-transparent font-semibold">
-            BookNest
-          </h1>
-        </div>
-        <h2 className="text-lg text-accent-v bg-clip-text text-transparent font-semibold text-center">
+    <div className="flex flex-grow justify-center items-center">
+      <div className="flex flex-col gap-md py-md flex-grow">
+        <h2 className="text-2xl text-accent-v bg-clip-text text-transparent font-semibold text-center">
           Sign In
         </h2>
-
-        {/* Form */}
-        <form onSubmit={formik.handleSubmit} className="flex flex-col gap-3">
-          {/* Email Field */}
+        <form onSubmit={formik.handleSubmit} className="flex flex-col gap-3 ">
+          {/* Email */}
           <div>
             <input
               id="email"
@@ -64,7 +68,7 @@ const Login = () => {
             )}
           </div>
 
-          {/* Password Field */}
+          {/* Password */}
           <div>
             <input
               id="password"
@@ -87,24 +91,33 @@ const Login = () => {
             )}
           </div>
 
-          {/* Buttons */}
+          {/* Button */}
           <div className="flex flex-col gap-3 mt-4">
-            <button type="submit" className="btn btn-accent-v">
-              Sign In
+            <button
+              type="submit"
+              className="btn btn-accent-v"
+              disabled={mutation.isPending}
+            >
+              {mutation.isPending ? "Signing in..." : "Sign In"}
             </button>
             <Link to="/register" className="btn btn-primary-v text-center">
               Create Account
             </Link>
           </div>
-        </form>
 
-        {/* Forgot Password */}
-        <div className="flex flex-col items-center gap-2">
-          <p className="text-center">Forgot Password?</p>
-          <Link to="/resetpassword" className="btn text-sm">
-            Reset Password
-          </Link>
-        </div>
+          {mutation.isError && (
+            <p className="text-red-500 text-sm text-center mt-2">
+              {mutation.error.response?.data?.message ||
+                "Login failed. Try again."}
+            </p>
+          )}
+        </form>
+        {/* <div className="flex flex-col items-center gap-2">
+        <p className="text-center">Forgot Password?</p>
+        <Link to="/resetpassword" className="btn text-sm">
+          Reset Password
+        </Link>
+      </div> */}
       </div>
     </div>
   );
